@@ -30,10 +30,11 @@ MODEL_NAME = "models/gemini-2.5-pro"
 @st.cache_resource
 def prepare_retriever():
     try:
-        dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train")
-        dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train")
-        dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train")
-        dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train")
+        dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train[:2000]")
+        dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train[:2000]")
+        dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train[:2000]")
+        dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train[:2000]")
+
 
         documents = []
          # 1. Orca Math Word Problems
