@@ -5,7 +5,8 @@ import os
 import requests
 import streamlit as st
 from datasets import load_dataset
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
+from langchain.text_splitter import TokenTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import RetrievalQA
@@ -64,7 +65,7 @@ def prepare_retriever():
                 documents.append(f"Metin: {text}\nÖzet: {summary}")
 
          # Metinleri parçalara ayıralım
-        text_splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100, length_function=len)
+        text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=100)
         docs = text_splitter.create_documents(documents)
 
         # Embedding modeli
