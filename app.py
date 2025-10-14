@@ -25,8 +25,7 @@ MODEL_NAME = "models/gemini-2.5-pro"
 # Veri setlerinden math_word problem tarzı sorular için
                  # math_hard daha derin işlemler için
                  # edu eğitim temalı genel soru-cevap için
-                 # wiki_sum bu veri setide tarih ve fen alanında daha verimli cevaplar için kullanılmıştır.
-@st.cache_resource  
+                 # wiki_sum bu veri setide tarih ve fen alanında daha verimli cevaplar için kullanılmıştır.  
 @st.cache_resource
 def prepare_retriever():
     try:
