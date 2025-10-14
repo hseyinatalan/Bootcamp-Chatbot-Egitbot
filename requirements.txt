@@ -5,7 +5,7 @@ langchain-community
 langchain-google-genai
 sentence-transformers
 faiss-cpu
-datasets
+datasets==2.18.0
 requests
 torch
 transformers
