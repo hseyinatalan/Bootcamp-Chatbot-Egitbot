@@ -1,5 +1,6 @@
 # RAG Temelli Eğitim Chatbot (EğitBot)
 
+# Gerekli kütüphaneleri ekliyoruz.
 import os
 import requests
 import streamlit as st
@@ -13,7 +14,7 @@ from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 import datetime
 
-# .env dosyasını yükle
+# .env dosyasını yükledik
 load_dotenv()
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -22,6 +23,13 @@ MODEL_NAME = "models/gemini-2.5-pro"
 # -----------------------------
 # 📄 VERİ SETİ & VEKTÖR VERİTABANI HAZIRLAMA
 # -----------------------------
+# Veri hazırlama işlemi de sadece bir kez yapılır.
+# Burda 4 farklı veri seti ekliyoruz.
+# Veri setlerinden math_word problem tarzı sorular için
+                 # math_hard daha derin işlemler için
+                 # edu eğitim temalı genel soru-cevap için
+                 # wiki_sum bu veri setide tarih ve fen alanında daha verimli cevaplar için kullanılmıştır.
+@st.cache_resource  
 @st.cache_resource
 def prepare_retriever():
     try:
@@ -31,38 +39,45 @@ def prepare_retriever():
         dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train")
 
         documents = []
-
+         # 1. Orca Math Word Problems
         for item in dataset_math_word:
             question = item.get("question", "").strip()
             answer = item.get("answer", "").strip()
             if question and answer:
                 documents.append(f"Soru: {question}\nCevap: {answer}")
 
+        # 2. Karayel-DDI Math Hard
         for item in dataset_math_hard:
             question = item.get("question", "").strip()
             answer = item.get("solution", "").strip()
             if question and answer:
                 documents.append(f"Soru: {question}\nCevap: {answer}")
 
+        # 3. Korkmazemin1 Turkish Education Dataset
         for item in dataset_edu:
             question = item.get("soru", "").strip()
             answer = item.get("cevap", "").strip()
             if question and answer:
                 documents.append(f"Soru: {question}\nCevap: {answer}")
 
+         # 4. Musabg Wikipedia Turkish Summarization Dataset
         for item in dataset_wiki_sum:
             text = item.get("text", "").strip()
             summary = item.get("summary", "").strip()
             if text and summary:
                 documents.append(f"Metin: {text}\nÖzet: {summary}")
 
+         # Metinleri parçalara ayıralım
         text_splitter = CharacterTextSplitter(chunk_size=2000, chunk_overlap=100, length_function=len)
         docs = text_splitter.create_documents(documents)
 
+        # Embedding modeli
         embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
+        # FAISS dizini
         FAISS_PATH = "faiss_index"
 
+        # Daha önce kayıtlı FAISS varsa onu yükle
         if os.path.exists(FAISS_PATH):
             vectorstore = FAISS.load_local(FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
         else:
@@ -74,7 +89,7 @@ def prepare_retriever():
     except Exception as e:
         st.error(f"Veri seti hazırlanırken hata oluştu: {e}")
         return None
-
+# Eğer retriever None dönerse uygulamayı durdurabilirsin
 retriever = prepare_retriever()
 if retriever is None:
     st.stop()
@@ -82,6 +97,7 @@ if retriever is None:
 # -----------------------------
 # 🔗 ÖZEL PROMPT OLUŞTURMA
 # -----------------------------
+# Burada modelden gelen bilgiyi nasıl kullanacağını söylüyoruz.
 prompt_template = """
 Sadece sorulan soruya net ve kısa cevap ver. Gereksiz ek açıklama yapma. 
 Sadece yukarıdaki soruya cevap ver. Başka konulara girmeyin veya yeni sorular sormayın.
@@ -111,6 +127,7 @@ llm = ChatGoogleGenerativeAI(
 # -----------------------------
 # 🔗 LangChain QA Zinciri Kurulumu
 # -----------------------------
+# LLM ve retriever’ı bağlayarak "Soru-Cevap" zinciri oluşturuyoruz.
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=retriever,
@@ -122,8 +139,13 @@ qa_chain = RetrievalQA.from_chain_type(
 # -----------------------------
 # 🖥️ Streamlit Arayüzü (EğitBot)
 # -----------------------------
+# Sayfa başlığı, simgesi ve genişlik ayarlandı
 st.set_page_config(page_title="📘 EğitBot - Eğitim Asistanı", page_icon="🎓", layout="wide")
 
+# -----------------------------
+# 👤 Oturum Durumu: Sohbet Geçmişi ve İstatistikler Başlatma
+# -----------------------------
+# Streamlit session_state ile kalıcı sohbet geçmişi ve sayaçları tutuyoruz.
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
@@ -133,7 +155,7 @@ if "total_questions" not in st.session_state:
 if "total_answers" not in st.session_state:
     st.session_state.total_answers = 0
 
-# Örnek sorular veri yapısı (Lise eklendi)
+# Örnek sorular veri yapısı
 EXAMPLE_QUESTIONS = {
     "İlkokul": {
         "Matematik": [
@@ -227,7 +249,9 @@ EXAMPLE_QUESTIONS = {
     }
 }
 
-# Sidebar tasarımı ve seçimler
+# -----------------------------
+# 📚 Sidebar - İstatistikler, Butonlar ve Örnek Sorular
+# -----------------------------
 with st.sidebar:
     st.title("📚 Örnek Sorular & Kontroller")
 
@@ -236,13 +260,13 @@ with st.sidebar:
     st.markdown(f"- Toplam Alınan Cevap: **{st.session_state.get('total_answers', 0)}**")
     st.markdown("---")
 
-    # Geçmişi Temizle Butonu
+    # "Geçmişi Temizle" butonu, tıklanınca tüm sohbeti ve sayacı sıfırlıyor
     if st.button("♻️ Geçmişi Temizle", key="clear_history"):
         st.session_state.chat_history = []
         st.session_state.total_questions = 0
         st.session_state.total_answers = 0
 
-    # Sohbeti Kaydet Butonu
+    # Sohbet geçmişini dosya olarak kaydetmek için fonksiyon
     def save_chat_history():
         now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         filename = f"chat_history_{now}.txt"
@@ -250,7 +274,8 @@ with st.sidebar:
             for sender, msg in st.session_state.get("chat_history", []):
                 f.write(f"{'Kullanıcı' if sender == 'user' else 'Bot'}: {msg}\n")
         return filename
-
+    
+    # "Sohbeti Kaydet" butonuna basıldığında sohbet dosyasını oluşturup indirilebilir yapıyoruz
     if st.button("💾 Sohbeti Kaydet", key="save_chat"):
         filename = save_chat_history()
         with open(filename, "rb") as f:
