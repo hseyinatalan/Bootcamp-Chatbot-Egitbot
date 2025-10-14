@@ -12,3 +12,4 @@ torch
 transformers
 huggingface-hub
 langchain-huggingface
+tiktoken
