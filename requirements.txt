@@ -1,0 +1,13 @@
+streamlit
+python-dotenv
+langchain
+langchain-community
+langchain-google-genai
+sentence-transformers
+faiss-cpu
+datasets
+requests
+torch
+transformers
+huggingface-hub
+llama-cpp-python
