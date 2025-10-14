@@ -4,7 +4,6 @@
 import os
 import requests
 import streamlit as st
-from dotenv import load_dotenv
 from datasets import load_dataset
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -14,10 +13,8 @@ from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 import datetime
 
-# .env dosyasını yükledik
-load_dotenv()
-
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# Streamlit secrets üzerinden API anahtarını al
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 MODEL_NAME = "models/gemini-2.5-pro"
 
 # -----------------------------
