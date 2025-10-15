@@ -1,101 +1,73 @@
-# RAG Temelli Eğitim Chatbot (EğitBot)
-
-# Gerekli kütüphaneleri ekliyoruz.
 import os
-import requests
-import streamlit as st
+import datetime
+import gradio as gr
 from datasets import load_dataset
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.text_splitter import TokenTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
-import datetime
 
-# Streamlit secrets üzerinden API anahtarını al
-GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
+# Cache klasör ayarları
+os.environ["HF_HOME"] = "./cache"
+os.environ["HF_DATASETS_CACHE"] = "./cache/hf_datasets"
+os.environ["TRANSFORMERS_CACHE"] = "./cache/transformers"
+os.environ["SENTENCE_TRANSFORMERS_HOME"] = "./cache/sentence_transformers"
+
+# API anahtarları ortam değişkenlerinden alınmalı
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 MODEL_NAME = "models/gemini-2.5-pro"
 
-# -----------------------------
-# 📄 VERİ SETİ & VEKTÖR VERİTABANI HAZIRLAMA
-# -----------------------------
-# Veri hazırlama işlemi de sadece bir kez yapılır.
-# Burda 4 farklı veri seti ekliyoruz.
-# Veri setlerinden math_word problem tarzı sorular için
-                 # math_hard daha derin işlemler için
-                 # edu eğitim temalı genel soru-cevap için
-                 # wiki_sum bu veri setide tarih ve fen alanında daha verimli cevaplar için kullanılmıştır.  
-@st.cache_resource
+# Veri hazırlama fonksiyonu (aynı)
 def prepare_retriever():
-    try:
-        dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train[:2000]")
-        dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train[:2000]")
-        dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train[:2000]")
-        dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train[:2000]")
+    dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train[:2000]")
+    dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train[:2000]")
+    dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train[:2000]")
+    dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train[:2000]")
 
+    documents = []
+    for item in dataset_math_word:
+        question = item.get("question", "").strip()
+        answer = item.get("answer", "").strip()
+        if question and answer:
+            documents.append(f"Soru: {question}\nCevap: {answer}")
 
-        documents = []
-         # 1. Orca Math Word Problems
-        for item in dataset_math_word:
-            question = item.get("question", "").strip()
-            answer = item.get("answer", "").strip()
-            if question and answer:
-                documents.append(f"Soru: {question}\nCevap: {answer}")
+    for item in dataset_math_hard:
+        question = item.get("question", "").strip()
+        answer = item.get("solution", "").strip()
+        if question and answer:
+            documents.append(f"Soru: {question}\nCevap: {answer}")
 
-        # 2. Karayel-DDI Math Hard
-        for item in dataset_math_hard:
-            question = item.get("question", "").strip()
-            answer = item.get("solution", "").strip()
-            if question and answer:
-                documents.append(f"Soru: {question}\nCevap: {answer}")
+    for item in dataset_edu:
+        question = item.get("soru", "").strip()
+        answer = item.get("cevap", "").strip()
+        if question and answer:
+            documents.append(f"Soru: {question}\nCevap: {answer}")
 
-        # 3. Korkmazemin1 Turkish Education Dataset
-        for item in dataset_edu:
-            question = item.get("soru", "").strip()
-            answer = item.get("cevap", "").strip()
-            if question and answer:
-                documents.append(f"Soru: {question}\nCevap: {answer}")
+    for item in dataset_wiki_sum:
+        text = item.get("text", "").strip()
+        summary = item.get("summary", "").strip()
+        if text and summary:
+            documents.append(f"Metin: {text}\nÖzet: {summary}")
 
-         # 4. Musabg Wikipedia Turkish Summarization Dataset
-        for item in dataset_wiki_sum:
-            text = item.get("text", "").strip()
-            summary = item.get("summary", "").strip()
-            if text and summary:
-                documents.append(f"Metin: {text}\nÖzet: {summary}")
+    text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=100)
+    docs = text_splitter.create_documents(documents)
 
-         # Metinleri parçalara ayıralım
-        text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=100)
-        docs = text_splitter.create_documents(documents)
+    embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
-        # Embedding modeli
-        embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
+    FAISS_PATH = "faiss_index"
+    if os.path.exists(FAISS_PATH):
+        vectorstore = FAISS.load_local(FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
+    else:
+        vectorstore = FAISS.from_documents(docs, embedding_model)
+        vectorstore.save_local(FAISS_PATH)
 
-        # FAISS dizini
-        FAISS_PATH = "faiss_index"
+    return vectorstore.as_retriever(search_kwargs={"k": 3})
 
-        # Daha önce kayıtlı FAISS varsa onu yükle
-        if os.path.exists(FAISS_PATH):
-            vectorstore = FAISS.load_local(FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
-        else:
-            vectorstore = FAISS.from_documents(docs, embedding_model)
-            vectorstore.save_local(FAISS_PATH)
-
-        return vectorstore.as_retriever(search_kwargs={"k": 3})
-
-    except Exception as e:
-        st.error(f"Veri seti hazırlanırken hata oluştu: {e}")
-        return None
-# Eğer retriever None dönerse uygulamayı durdurabilirsin
 retriever = prepare_retriever()
-if retriever is None:
-    st.stop()
 
-# -----------------------------
-# 🔗 ÖZEL PROMPT OLUŞTURMA
-# -----------------------------
-# Burada modelden gelen bilgiyi nasıl kullanacağını söylüyoruz.
 prompt_template = """
 Sadece sorulan soruya net ve kısa cevap ver. Gereksiz ek açıklama yapma. 
 Sadece yukarıdaki soruya cevap ver. Başka konulara girmeyin veya yeni sorular sormayın.
@@ -114,18 +86,11 @@ PROMPT = PromptTemplate(
     input_variables=["context", "question"]
 )
 
-# -----------------------------
-# 🔗 Gemini LLM (LangChain üzerinden)
-# -----------------------------
 llm = ChatGoogleGenerativeAI(
     model=MODEL_NAME,
     google_api_key=GOOGLE_API_KEY
 )
 
-# -----------------------------
-# 🔗 LangChain QA Zinciri Kurulumu
-# -----------------------------
-# LLM ve retriever’ı bağlayarak "Soru-Cevap" zinciri oluşturuyoruz.
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=retriever,
@@ -134,252 +99,72 @@ qa_chain = RetrievalQA.from_chain_type(
     chain_type_kwargs={"prompt": PROMPT}
 )
 
-# -----------------------------
-# 🖥️ Streamlit Arayüzü (EğitBot)
-# -----------------------------
-# Sayfa başlığı, simgesi ve genişlik ayarlandı
-st.set_page_config(page_title="📘 EğitBot - Eğitim Asistanı", page_icon="🎓", layout="wide")
-
-# -----------------------------
-# 👤 Oturum Durumu: Sohbet Geçmişi ve İstatistikler Başlatma
-# -----------------------------
-# Streamlit session_state ile kalıcı sohbet geçmişi ve sayaçları tutuyoruz.
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-if "total_questions" not in st.session_state:
-    st.session_state.total_questions = 0
-
-if "total_answers" not in st.session_state:
-    st.session_state.total_answers = 0
-
-# Örnek sorular veri yapısı
-EXAMPLE_QUESTIONS = {
-    "İlkokul": {
-        "Matematik": [
-            "Bir çantada 5 kitap varsa, 3 çantada kaç kitap olur?",
-            "10 - 4 işleminin sonucu kaçtır?",
-            "2 ile 3'ün toplamı kaçtır?",
-            "Bir elma 3 TL ise, 4 elma kaç TL eder?",
-            "5 elma ve 2 armut kaç meyvedir?"
-        ],
-        "Türkçe": [
-            "'Ev' kelimesi kaç harflidir?",
-            "Cümlenin baş harfi nasıl yazılır?",
-            "Bir cümleye örnek veriniz.",
-            "Sesli harfler nelerdir?",
-            "Hangi kelimede 'a' harfi vardır?"
-        ],
-        "Tarih": [
-            "Türkiye'nin başkenti neresidir?",
-            "Atatürk kimdir?",
-            "Türkiye hangi kıtadadır?",
-            "Bayrak neden önemlidir?",
-            "Okulun ilk günü nasıl geçer?"
-        ],
-        "Fen Bilimleri": [
-            "Bitkiler nasıl büyür?",
-            "Güneş neden parlar?",
-            "Su neden akar?",
-            "Hayvanlar ne yer?",
-            "Hangi nesne sıcak olur?"
-        ]
-    },
-    "Ortaokul": {
-        "Matematik": [
-            "3x + 5 = 20 denkleminde x kaçtır?",
-            "Bir dik üçgenin özellikleri nelerdir?",
-            "5 ile 7'nin ortalaması kaçtır?",
-            "Bir sayının karesi nedir?",
-            "Alan ve çevre farkı nedir?"
-        ],
-        "Türkçe": [
-            "Cümledeki yüklem nedir?",
-            "Fiil nedir, örnek veriniz.",
-            "Anlam bilgisi nedir?",
-            "Noktalama işaretleri nelerdir?",
-            "Cümlenin ögesi nedir?"
-        ],
-        "Tarih": [
-            "Osmanlı Devleti ne zaman kurulmuştur?",
-            "Türk tarihi önemli olayları nelerdir?",
-            "Cumhuriyet ne zaman ilan edildi?",
-            "Atatürk'ün hayatı hakkında bilgi verin.",
-            "Tarih neden önemlidir?"
-        ],
-        "Fen Bilimleri": [
-            "Fotosentez nedir?",
-            "Maddenin halleri nelerdir?",
-            "İnsan vücudundaki organlar nelerdir?",
-            "Güç nedir?",
-            "Enerji türleri nelerdir?"
-        ]
-    },
-    "Lise": {
-        "Matematik": [
-            "Türev nedir ve nasıl hesaplanır?",
-            "Bir üçgenin iç açılarının toplamı kaçtır?",
-            "Kareköklü ifadeler nasıl sadeleştirilir?",
-            "Fonksiyon nedir?",
-            "Olasılık hesaplaması nasıl yapılır?"
-        ],
-        "Türkçe": [
-            "Fiil çekimi nasıl yapılır?",
-            "Anlatım bozukluğu nedir, örnek veriniz.",
-            "Cümledeki ögeler nelerdir?",
-            "Sözcük türleri nelerdir?",
-            "Metin türleri nelerdir?"
-        ],
-        "Tarih": [
-            "Birinci Dünya Savaşı'nın nedenleri nelerdir?",
-            "Osmanlı Devleti'nin yıkılış süreci nasıl oldu?",
-            "Cumhuriyet'in ilanı ne zaman gerçekleşti?",
-            "Atatürk'ün inkılapları nelerdir?",
-            "Soğuk Savaş dönemi hakkında bilgi verin."
-        ],
-        "Fen Bilimleri": [
-            "Kimyasal reaksiyon nedir?",
-            "Elektrik akımı nasıl oluşur?",
-            "Fotosentezde ışığın rolü nedir?",
-            "Biyoloji alanında DNA'nın önemi nedir?",
-            "Newton'un hareket kanunları nelerdir?"
-        ]
-    }
-}
-
-# -----------------------------
-# 📚 Sidebar - İstatistikler, Butonlar ve Örnek Sorular
-# -----------------------------
-with st.sidebar:
-    st.title("📚 Örnek Sorular & Kontroller")
-
-    # İstatistikler
-    st.markdown(f"- Toplam Sorulan Soru: **{st.session_state.get('total_questions', 0)}**")
-    st.markdown(f"- Toplam Alınan Cevap: **{st.session_state.get('total_answers', 0)}**")
-    st.markdown("---")
-
-    # "Geçmişi Temizle" butonu, tıklanınca tüm sohbeti ve sayacı sıfırlıyor
-    if st.button("♻️ Geçmişi Temizle", key="clear_history"):
-        st.session_state.chat_history = []
-        st.session_state.total_questions = 0
-        st.session_state.total_answers = 0
-
-    # Sohbet geçmişini dosya olarak kaydetmek için fonksiyon
-    def save_chat_history():
-        now = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"chat_history_{now}.txt"
-        with open(filename, "w", encoding="utf-8") as f:
-            for sender, msg in st.session_state.get("chat_history", []):
-                f.write(f"{'Kullanıcı' if sender == 'user' else 'Bot'}: {msg}\n")
-        return filename
+# Gradio UI düzeni
+with gr.Blocks() as demo:
+    gr.Markdown("# 📘 EğitBot - Eğitim Asistanı")
     
-    # "Sohbeti Kaydet" butonuna basıldığında sohbet dosyasını oluşturup indirilebilir yapıyoruz
-    if st.button("💾 Sohbeti Kaydet", key="save_chat"):
-        filename = save_chat_history()
-        with open(filename, "rb") as f:
-            st.download_button(
-                label="⬇️ Dosyayı İndir",
-                data=f,
-                file_name=filename,
-                mime="text/plain"
-            )
+    with gr.Row():
+        with gr.Column(scale=2):
+            # Soru sorma alanı
+            user_input = gr.Textbox(placeholder="Sorunuzu buraya yazınız...", label="Soru")
+            send_btn = gr.Button("Gönder")
 
-    # Örnek sorular için seçimler
-    grade = st.selectbox("Sınıf Seviyesi Seçiniz:", options=list(EXAMPLE_QUESTIONS.keys()), key="grade_select")
-    subjects = list(EXAMPLE_QUESTIONS[grade].keys())
-    subject = st.selectbox("Konu Seçiniz:", options=subjects, key="subject_select")
+            # Toplam soru sayısı
+            total_q = gr.Number(value=0, label="Toplam Sorulan Soru", interactive=False)
 
-    # Liste olarak örnek soruları göster
-    example_questions = EXAMPLE_QUESTIONS[grade][subject]
-    st.markdown("### Örnek Sorular:")
-    for idx, question in enumerate(example_questions, 1):
-        st.markdown(f"{idx}. {question}")
+            # Sohbet geçmişi
+            chatbox = gr.HTML(value="", label="Sohbet Geçmişi")
 
-# Ana sayfa başlığı
-st.title("📘 EğitBot - Eğitim Asistanı")
+        with gr.Column(scale=1):
+            # Sohbeti kaydetme ve temizleme butonları
+            clear_btn = gr.Button("♻️ Geçmişi Temizle", variant="primary")
+            save_btn = gr.Button("💾 Sohbeti Kaydet", variant="primary")
+            download_file = gr.File(label="İndir")
 
-# Kullanıcının sorusunu al
-user_question = st.text_input("Sorunuzu buraya yazınız veya yukarıdaki örnek sorulardan birini yazabilirsiniz:", key="user_question_input")
+    # Sohbeti temizleme fonksiyonu
+    def clear_chat():
+        return "", 0  # Sohbeti temizle ve soruları sıfırla
 
-# Gönder butonu
-if st.button("Gönder", key="send_question"):
-    if user_question.strip() == "":
-        st.warning("Lütfen bir soru yazınız veya örnek sorulardan birini kullanınız.")
-    else:
-        with st.spinner("Cevap aranıyor..."):
-            try:
-                answer = qa_chain.run(user_question)
-                st.session_state.chat_history.append(("user", user_question))
-                st.session_state.chat_history.append(("bot", answer))
-                st.session_state.total_questions += 1
-                st.session_state.total_answers += 1
-            except Exception as e:
-                st.error(f"Cevap alınırken hata oluştu: {e}")
+    clear_btn.click(fn=clear_chat, inputs=[], outputs=[chatbox, total_q])
 
-# Sohbet geçmişi balonlar halinde gösterimi
-def render_message(sender, message):
-    if sender == "user":
-        color = "#DCF8C6"  # Açık yeşil (Kullanıcı için)
-        align = "flex-end"
-        border_radius = "15px 15px 0 15px"
-    else:
-        color = "#EAEAEA"  # Açık gri (Bot için)
-        align = "flex-start"
-        border_radius = "15px 15px 15px 0"
-    st.markdown(
-        f"""
-        <div style="
-            display: flex;
-            justify-content: {align};
-            margin: 5px 0;
-        ">
-            <div style="
-                background-color: {color};
-                padding: 10px 15px;
-                border-radius: {border_radius};
-                max-width: 70%;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-                ">
-                {message}
-            </div>
+    # Sohbeti kaydetme fonksiyonu
+    def save_chat_to_file(chat_history):
+        if not chat_history:
+            return None
+        
+        # Chat geçmişini bir dosyaya kaydet
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"chat_history_{timestamp}.txt"
+        
+        with open(filename, "w") as file:
+            file.write(chat_history)
+        
+        # Kullanıcıya dosya indirme bağlantısı gönder
+        return filename
+
+    save_btn.click(fn=save_chat_to_file, inputs=[chatbox], outputs=download_file)
+
+    # Soru gönderme fonksiyonu
+    def handle_question(user_question, total_questions, chat_history):
+        # Soruyu kullanarak yanıt al
+        result = qa_chain.run(user_question)
+        
+        # Geçmişi güncelle ve toplam soru sayısını arttır
+        chat_history = f"""
+        <div style="background-color:#e8f4f8; padding: 10px; border-radius: 15px; margin-bottom: 5px;">
+            <b>Soru:</b> <span style="color: black;">{user_question}</span>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+        <div style="background-color:#f1f9f5; padding: 10px; border-radius: 15px; margin-bottom: 5px;">
+            <b>Cevap:</b> <span style="color: black;">{result}</span>
+        </div>
+        """ + chat_history  # Yeni soru-cevap en üstte
 
-if st.session_state.chat_history:
-    st.markdown("---")
-    st.subheader("💬 Sohbet Geçmişi")
-    for sender, message in reversed(st.session_state.chat_history):
-        if sender == "user":
-            st.markdown(
-                f"""
-                <div style="
-                    background-color: #A3C4F3;  /* Soft mavi */
-                    padding: 12px;
-                    border-radius: 15px;
-                    margin: 5px 0px;
-                    max-width: 80%;
-                    color: black;   /* Yazı siyah */
-                    ">
-                    <b>Kullanıcı:</b> {message}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                f"""
-                <div style="
-                    background-color: #8FBC8F;  /* Soft yeşil */
-                    padding: 12px;
-                    border-radius: 15px;
-                    margin: 5px 0px;
-                    max-width: 80%;
-                    color: black;  /* Yazı siyah */
-                    ">
-                    <b>Bot:</b> {message}
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
+        total_questions += 1
+        return chat_history, total_questions
+
+    # Gönder butonuna tıklanınca soru gönderme işlemi
+    send_btn.click(fn=handle_question, inputs=[user_input, total_q, chatbox], 
+                   outputs=[chatbox, total_q])
+
+# Gradio UI'sini başlatma
+demo.launch(share=True)
