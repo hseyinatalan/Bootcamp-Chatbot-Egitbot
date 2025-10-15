@@ -1,3 +1,6 @@
+#RAG Temelli Chatbot-EĞİTBOT
+
+#Gerekli kütüphaneleri ekliyoruz.
 import os
 import datetime
 import gradio as gr
@@ -9,43 +12,41 @@ from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 
-# Cache klasör ayarları
-os.environ["HF_HOME"] = "./cache"
-os.environ["HF_DATASETS_CACHE"] = "./cache/hf_datasets"
-os.environ["TRANSFORMERS_CACHE"] = "./cache/transformers"
-os.environ["SENTENCE_TRANSFORMERS_HOME"] = "./cache/sentence_transformers"
-
-# API anahtarları ortam değişkenlerinden alınmalı
+# API anahtarları alınıyor.
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 MODEL_NAME = "models/gemini-2.5-pro"
 
-# Veri hazırlama fonksiyonu (aynı)
+# Veri hazırlama fonksiyonumuz.
 def prepare_retriever():
-    dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train[:2000]")
-    dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train[:2000]")
-    dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train[:2000]")
-    dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train[:2000]")
+    dataset_math_word = load_dataset("duxx/orca-math-word-problems-tr", split="train[:10000]")
+    dataset_math_hard = load_dataset("Karayel-DDI/Turkce_Lighteval_MATH-Hard", split="train[:10000]")
+    dataset_edu = load_dataset("korkmazemin1/turkish-education-dataset", split="train[:5000]")
+    dataset_wiki_sum = load_dataset("musabg/wikipedia-tr-summarization", split="train[:10000]")
 
     documents = []
+    # 1. Orca Math Word Problems
     for item in dataset_math_word:
         question = item.get("question", "").strip()
         answer = item.get("answer", "").strip()
         if question and answer:
             documents.append(f"Soru: {question}\nCevap: {answer}")
 
+    # 2. Karayel-DDI Math Hard
     for item in dataset_math_hard:
         question = item.get("question", "").strip()
         answer = item.get("solution", "").strip()
         if question and answer:
             documents.append(f"Soru: {question}\nCevap: {answer}")
 
+    # 3. Korkmazemin1 Turkish Education Dataset
     for item in dataset_edu:
         question = item.get("soru", "").strip()
         answer = item.get("cevap", "").strip()
         if question and answer:
             documents.append(f"Soru: {question}\nCevap: {answer}")
 
+    # 4. Musabg Wikipedia Turkish Summarization Dataset
     for item in dataset_wiki_sum:
         text = item.get("text", "").strip()
         summary = item.get("summary", "").strip()
@@ -55,8 +56,10 @@ def prepare_retriever():
     text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=100)
     docs = text_splitter.create_documents(documents)
 
+    # Embedding modelimiz.
     embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
+    # FAISS dizini ve daha önce kayıtlı FAISS varsa onu yükleme.
     FAISS_PATH = "faiss_index"
     if os.path.exists(FAISS_PATH):
         vectorstore = FAISS.load_local(FAISS_PATH, embedding_model, allow_dangerous_deserialization=True)
@@ -66,7 +69,13 @@ def prepare_retriever():
 
     return vectorstore.as_retriever(search_kwargs={"k": 3})
 
+# Fonksiyonu çağırıp retriever'ı hazırlama.
 retriever = prepare_retriever()
+
+# -----------------------------
+# 🔗 ÖZEL PROMPT OLUŞTURMA
+# -----------------------------
+# Burada modelden gelen bilgiyi nasıl kullanacağını belirtiyoruz.
 
 prompt_template = """
 Sadece sorulan soruya net ve kısa cevap ver. Gereksiz ek açıklama yapma. 
@@ -85,12 +94,14 @@ PROMPT = PromptTemplate(
     template=prompt_template,
     input_variables=["context", "question"]
 )
+# Burada, Google'ın yapay zeka tabanlı sohbet modeli ile bir bağlantı kuruyoruz. 
+# Modeli çalıştırabilmek için öncelikle API anahtarımızı ve modelin adını belirtmemiz gerekiyor.
 
 llm = ChatGoogleGenerativeAI(
     model=MODEL_NAME,
     google_api_key=GOOGLE_API_KEY
 )
-
+# Burada 'llm' modelini kullanarak, dil modelinden sorulara cevap alıyoruz.
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     retriever=retriever,
@@ -123,7 +134,7 @@ with gr.Blocks() as demo:
 
     # Sohbeti temizleme fonksiyonu
     def clear_chat():
-        return "", 0  # Sohbeti temizle ve soruları sıfırla
+        return "", 0 
 
     clear_btn.click(fn=clear_chat, inputs=[], outputs=[chatbox, total_q])
 
