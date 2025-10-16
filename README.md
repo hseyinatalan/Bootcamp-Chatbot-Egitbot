@@ -104,3 +104,10 @@ Aşağıdaki ortam değişkenlerini .env dosyası olarak veya terminalden tanım
 export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
 export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
 ```
+## 📁 Proje Yapısı
+```
+├── app.py # Ana uygulama dosyası
+├── requirements.txt # Python bağımlılıkları
+├── .env # API anahtarları (git'e eklenmez)
+├── README.md # Bu dosya
+```
