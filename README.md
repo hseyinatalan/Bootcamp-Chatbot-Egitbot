@@ -32,7 +32,11 @@ Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri
    FAISS kütüphanesi ile embedding vektörleri yerel bir veritabanında saklanır ve hızlı erişim sağlanır.
 
 5. **Bağlam Eşleştirme (Context Matching):**  
-   Kullanıcı sorusu ile ilgili en alakalı 3 doküman FAIS
+   Kullanıcı sorusu ile ilgili en alakalı 3 doküman FAISS üzerinden çekilir.
+
+6. **Yanıt Üretimi (Response Generation):**  
+   Google Gemini tabanlı `ChatGoogleGenerativeAI` modeli, getirilen bağlam ve kullanıcı sorusuna dayanarak öğretici ve sade cevaplar üretir.
+
 
 # 🚀 Özellikler
 
