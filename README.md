@@ -38,7 +38,18 @@ tiktoken
 
 📦 Kurulum
 1. Ortamı Hazırlama
-<pre> ```bash # Projeyi klonla git clone https://github.com/kullaniciAdi/egitbot-rag.git cd egitbot-rag # Sanal ortam oluştur python -m venv venv # Sanal ortamı aktifleştir # macOS / Linux: source venv/bin/activate # Windows (CMD): venv\Scripts\activate # Windows (PowerShell): venv\Scripts\Activate.ps1 ``` </pre>
+git clone https://github.com/kullaniciAdi/egitbot-rag.git
+cd egitbot-rag
+
+python -m venv venv
+
+# Sanal ortamı aktifleştir
+# macOS / Linux:
+source venv/bin/activate
+
+# Windows:
+venv\Scripts\activate
+
 2. Gerekli Paketleri Yükleme
 <pre> ```bash pip install -r requirements.txt ``` </pre>
 3. API Anahtarlarını Ayarlama
