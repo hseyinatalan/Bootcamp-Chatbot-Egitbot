@@ -6,6 +6,7 @@ Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eği
 
 ## DEPLOY LİNK
 https://huggingface.co/spaces/mhuseyina/Egitbot
+![EğitBot Demo](egitbot.gif)
 
 
 ## 📚 Kullanılan Veri Setleri
