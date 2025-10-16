@@ -38,6 +38,7 @@ tiktoken
 
 📦 Kurulum
 1. Ortamı Hazırlama
+```bash
 git clone https://github.com/kullaniciAdi/egitbot-rag.git
 cd egitbot-rag
 
@@ -49,6 +50,7 @@ source venv/bin/activate
 
 # Windows:
 venv\Scripts\activate
+```
 
 2. Gerekli Paketleri Yükleme
 <pre> ```bash pip install -r requirements.txt ``` </pre>
