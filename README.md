@@ -4,6 +4,17 @@ EğitBot, Türkçe eğitim içerikleriyle eğitilmiş bir RAG (Retrieval-Augment
 
 Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eğitim veri setleri ile güçlendirilmiştir.
 
+## 📚 Kullanılan Veri Setleri
+
+Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri setleri, eğitim içeriklerinin zenginleştirilmesi ve sorulara doğru yanıtlar verebilmek için kullanılmıştır.
+
+| Veri Seti                         | Açıklama                             | Hugging Face Linki                                                                                  |
+|----------------------------------|------------------------------------|---------------------------------------------------------------------------------------------------|
+| Orca Math Word Problems TR        | Türkçe matematik kelime problemleri| [duxx/orca-math-word-problems-tr](https://huggingface.co/datasets/duxx/orca-math-word-problems-tr) |
+| Karayel-DDI Türkçe MATH-Hard     | Zorlayıcı Türkçe matematik soruları| [Karayel-DDI/Turkce_Lighteval_MATH-Hard](https://huggingface.co/datasets/Karayel-DDI/Turkce_Lighteval_MATH-Hard) |
+| Korkmazemin1 Turkish Education Dataset | Genel Türkçe eğitim soruları ve cevapları | [korkmazemin1/turkish-education-dataset](https://huggingface.co/datasets/korkmazemin1/turkish-education-dataset?utm_source=chatgpt.com) |
+| Musabg Wikipedia Turkish Summarization | Türkçe Wikipedia metin özetleri   | [musabg/wikipedia-tr-summarization](https://huggingface.co/datasets/musabg/wikipedia-tr-summarization) |
+
 # 🚀 Özellikler
 
 🔍 RAG tabanlı bilgi getirme (retrieval) desteği
