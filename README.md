@@ -15,6 +15,25 @@ Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri
 | Korkmazemin1 Turkish Education Dataset | Genel Türkçe eğitim soruları ve cevapları | [korkmazemin1/turkish-education-dataset](https://huggingface.co/datasets/korkmazemin1/turkish-education-dataset?utm_source=chatgpt.com) |
 | Musabg Wikipedia Turkish Summarization | Türkçe Wikipedia metin özetleri   | [musabg/wikipedia-tr-summarization](https://huggingface.co/datasets/musabg/wikipedia-tr-summarization) |
 
+## 🧱 EğitBot RAG Pipeline Mimarisi
+
+**EğitBot**, eğitim odaklı Türkçe bir RAG (Retrieval-Augmented Generation) tabanlı sohbet asistanıdır. Aşağıdaki adımlarla çalışır:
+
+1. **Veri Yükleme (Content Extraction):**  
+   Hugging Face `datasets` kütüphanesi ile çeşitli Türkçe eğitim veri setleri (matematik soruları, eğitim içerikleri, Wikipedia özetleri) indirilip yüklenir.
+
+2. **Akıllı Parçalama (Intelligent Chunking):**  
+   `TokenTextSplitter` kullanılarak uzun metinler, anlamlı ve optimize edilmiş parçalara (chunk) bölünür.
+
+3. **Vektör Dönüşümü (Vector Embedding):**  
+   `sentence-transformers/all-MiniLM-L6-v2` modeli ile metin parçaları sayısal vektörlere dönüştürülür.
+
+4. **Vektör Depolama (Vector Storage):**  
+   FAISS kütüphanesi ile embedding vektörleri yerel bir veritabanında saklanır ve hızlı erişim sağlanır.
+
+5. **Bağlam Eşleştirme (Context Matching):**  
+   Kullanıcı sorusu ile ilgili en alakalı 3 doküman FAIS
+
 # 🚀 Özellikler
 
 🔍 RAG tabanlı bilgi getirme (retrieval) desteği
