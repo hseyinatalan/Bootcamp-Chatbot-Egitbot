@@ -8,7 +8,10 @@ Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eği
 https://huggingface.co/spaces/mhuseyina/Egitbot
 ![EğitBot Demo](egitbot.gif)
 
-
+Soru kutusundan sorularımızı soruyoruz.Aldığımız cevaplar sohbet geçmişinde görüntüleniyor.
+Sorulan sayı istatistiği tutuluyor ve gösteriliyor.
+Sohbet geçmişi istenirse indirilebilir hale getiriliyor .txt dosyası olarak alınabiliyor.
+Sohbet geçmişi temizlenebiliyor.
 ## 📚 Kullanılan Veri Setleri
 
 Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri setleri, eğitim içeriklerinin zenginleştirilmesi ve sorulara doğru yanıtlar verebilmek için kullanılmıştır.
