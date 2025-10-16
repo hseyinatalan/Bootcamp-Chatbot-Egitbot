@@ -1,10 +1,10 @@
-📘 EğitBot - RAG Tabanlı Eğitim Asistanı
+#📘 EğitBot - RAG Tabanlı Eğitim Asistanı
 
 EğitBot, Türkçe eğitim içerikleriyle eğitilmiş bir RAG (Retrieval-Augmented Generation) tabanlı akıllı eğitim asistanıdır. Öğrencilerin ders sorularını anlamlı, sade ve açıklayıcı şekilde yanıtlayarak öğrenme süreçlerine yardımcı olur.
 
 Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eğitim veri setleri ile güçlendirilmiştir.
 
-🚀 Özellikler
+#🚀 Özellikler
 
 🔍 RAG tabanlı bilgi getirme (retrieval) desteği
 
@@ -20,7 +20,7 @@ Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eği
 
 🎨 Kullanıcı dostu Gradio arayüzü
 
-🧱 Kullanılan Kütüphaneler
+#🧱 Kullanılan Kütüphaneler
 gradio
 python-dotenv
 langchain
@@ -36,7 +36,7 @@ transformers
 huggingface-hub
 tiktoken
 
-📦 Kurulum
+#📦 Kurulum
 1. Ortamı Hazırlama
 ```bash
 git clone https://github.com/kullaniciAdi/egitbot-rag.git
@@ -53,7 +53,12 @@ venv\Scripts\activate
 ```
 
 2. Gerekli Paketleri Yükleme
-```bash pip install -r requirements.txt ```
+```bash
+pip install -r requirements.txt
+ ```
 3. API Anahtarlarını Ayarlama
 Aşağıdaki ortam değişkenlerini .env dosyası olarak veya terminalden tanımlayın:
-```bash export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY" export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN" ```
+```bash
+export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
+exportHUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
+```
