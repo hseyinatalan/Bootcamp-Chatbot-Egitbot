@@ -54,21 +54,24 @@ Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri
 
 🎨 Kullanıcı dostu Gradio arayüzü
 
-# 🧱 Kullanılan Kütüphaneler
-gradio
-python-dotenv
-langchain
-langchain-community
-langchain-google-genai
-langchain-huggingface
-sentence-transformers
-faiss-cpu
-datasets==2.18.0
-requests
-torch
-transformers
-huggingface-hub
-tiktoken
+## 🧱 Kullanılan Kütüphaneler
+
+Proje kapsamında aşağıdaki Python paketleri kullanılmaktadır:
+
+- gradio
+- python-dotenv
+- langchain
+- langchain-community
+- langchain-google-genai
+- langchain-huggingface
+- sentence-transformers
+- faiss-cpu
+- datasets==2.18.0
+- requests
+- torch
+- transformers
+- huggingface-hub
+- tiktoken
 
 # 📦 Kurulum
 1. Ortamı Hazırlama
