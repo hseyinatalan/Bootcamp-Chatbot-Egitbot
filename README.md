@@ -1,10 +1,10 @@
-#📘 EğitBot - RAG Tabanlı Eğitim Asistanı
+# 📘 EğitBot - RAG Tabanlı Eğitim Asistanı
 
-##EğitBot, Türkçe eğitim içerikleriyle eğitilmiş bir RAG (Retrieval-Augmented Generation) tabanlı akıllı eğitim asistanıdır. Öğrencilerin ders sorularını anlamlı, sade ve açıklayıcı şekilde yanıtlayarak öğrenme süreçlerine yardımcı olur.
+EğitBot, Türkçe eğitim içerikleriyle eğitilmiş bir RAG (Retrieval-Augmented Generation) tabanlı akıllı eğitim asistanıdır. Öğrencilerin ders sorularını anlamlı, sade ve açıklayıcı şekilde yanıtlayarak öğrenme süreçlerine yardımcı olur.
 
 Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eğitim veri setleri ile güçlendirilmiştir.
 
-#🚀 Özellikler
+# 🚀 Özellikler
 
 🔍 RAG tabanlı bilgi getirme (retrieval) desteği
 
@@ -20,7 +20,7 @@ Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eği
 
 🎨 Kullanıcı dostu Gradio arayüzü
 
-#🧱 Kullanılan Kütüphaneler
+# 🧱 Kullanılan Kütüphaneler
 gradio
 python-dotenv
 langchain
@@ -36,7 +36,7 @@ transformers
 huggingface-hub
 tiktoken
 
-#📦 Kurulum
+# 📦 Kurulum
 1. Ortamı Hazırlama
 ```bash
 git clone https://github.com/kullaniciAdi/egitbot-rag.git
