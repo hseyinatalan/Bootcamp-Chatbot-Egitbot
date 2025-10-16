@@ -111,12 +111,12 @@ export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
 ├── .env # API anahtarları (git'e eklenmez)
 ├── README.md # Bu dosya
 ```
-## Neler Farklı Yapılabilr
+## 💡 Neler Farklı Yapılabilr
 - Verisetlerindeki tüm veriler ile çalışılmadı çünkü huggingface de sunmak için limit koymam gerekti.Daha verimli olması için yerelde çalıştırılıp tüm veri ile çalıştırılabilir.
 - Projeyinin başında yerelde çalışan bir model indirip onun ile oluşturdum tabiki sistemi zorlayan bir durum oluştu 4 ayrı verisetini işleyince ama sonucunda gayet tatmin eden bir durum oluştu.
 - Projeyi deploy etmem gerektiği için bu modelden vazgeçip gemini 2.5-pro ile devam ettim. Google 30 günlük deneme verdiği için flash yerine pro yu tercih ettim.
 - Projenin şuanki halinden gayet memnunum birçok kez denemeler yaptım ve yanıltıcı vs. cevaplar almadım.Tabiki bazı sorulara özellikle lise düzeyi zor sorularda arada bir "bu cevap bende yok" gibi dönüşler verdi.Bunun sebebi büyük ölçüde verisetlerini kısıtlama zorunluluğum oldu.
 - Projeyi daha iyi hale getirmek için yapılabilecek şeyler verisetlerini büyütmek ve arayüzde daha çok kullanıcıya yardımcı eklentiler eklenebilir.
 
-## Teşekkür
+## 🙏 Teşekkür
 Bu projeyi yapmama vesile olan Global AI Hub tarafından yapılan Akbank Generative AI Giriş Bootcamp'idir.Topluluk Liderleri ve Mentorlarımıza verdikleri eğitimler için teşekkür ederim.
