@@ -107,6 +107,10 @@ Aşağıdaki ortam değişkenlerini .env dosyası olarak veya terminalden tanım
 export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
 export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
 ```
+4. Uygulamayı Başlat
+```bash
+python app.py
+```
 ## 📁 Proje Yapısı
 ```
 ├── app.py # Ana uygulama dosyası
