@@ -4,6 +4,10 @@ EğitBot, Türkçe eğitim içerikleriyle eğitilmiş bir RAG (Retrieval-Augment
 
 Bu proje, LangChain, Google Gemini Pro, FAISS, Gradio ve çeşitli Türkçe eğitim veri setleri ile güçlendirilmiştir.
 
+## DEPLOY LİNK
+https://huggingface.co/spaces/mhuseyina/Egitbot
+
+
 ## 📚 Kullanılan Veri Setleri
 
 Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri setleri, eğitim içeriklerinin zenginleştirilmesi ve sorulara doğru yanıtlar verebilmek için kullanılmıştır.
@@ -38,7 +42,7 @@ Proje kapsamında aşağıdaki Türkçe veri setleri kullanılmıştır. Bu veri
    Google Gemini tabanlı `ChatGoogleGenerativeAI` modeli, getirilen bağlam ve kullanıcı sorusuna dayanarak öğretici ve sade cevaplar üretir.
 
 
-# 🚀 Özellikler
+## 🚀 Özellikler
 
 🔍 RAG tabanlı bilgi getirme (retrieval) desteği
 
@@ -97,5 +101,5 @@ pip install -r requirements.txt
 Aşağıdaki ortam değişkenlerini .env dosyası olarak veya terminalden tanımlayın:
 ```bash
 export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY"
-exportHUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
+export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN"
 ```
