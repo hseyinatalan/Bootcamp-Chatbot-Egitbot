@@ -53,7 +53,7 @@ venv\Scripts\activate
 ```
 
 2. Gerekli Paketleri Yükleme
-<pre> ```bash pip install -r requirements.txt ``` </pre>
+```bash pip install -r requirements.txt ```
 3. API Anahtarlarını Ayarlama
 Aşağıdaki ortam değişkenlerini .env dosyası olarak veya terminalden tanımlayın:
-<pre> ```bash export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY" export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN" ``` </pre>
+```bash export GOOGLE_API_KEY="YOUR_GOOGLE_API_KEY" export HUGGINGFACEHUB_API_TOKEN="YOUR_HUGGINGFACE_TOKEN" ```
