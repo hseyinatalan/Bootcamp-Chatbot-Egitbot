@@ -81,12 +81,15 @@ Proje kapsamında aşağıdaki Python paketleri kullanılmaktadır:
 # 📦 Kurulum
 1. Ortamı Hazırlama
 ```bash
-git clone https://github.com/kullaniciAdi/egitbot-rag.git
-cd egitbot-rag
+# Depoyu klonla
+git clone https://github.com/hseyinatalan/Egitbot-Chatbot.git
+cd Egitbot-Chatbot
 
+# Sanal ortam oluştur
 python -m venv venv
 
 # Sanal ortamı aktifleştir
+
 # macOS / Linux:
 source venv/bin/activate
 
